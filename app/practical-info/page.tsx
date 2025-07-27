@@ -122,22 +122,15 @@ export default function PracticalInfoPage() {
               <div className="bg-gray-50 rounded p-3">
                 <p className="font-medium text-gray-700 mb-2">Universal Studios Hollywood</p>
                 <AppLink 
-                  appStoreUrl="https://apps.apple.com/us/app/universal-studios-hollywood/id495352410"
+                  appStoreUrl="https://apps.apple.com/dk/app/universal-studios-hollywood/id1148662693?l=da"
                   appName="Universal App"
                 />
               </div>
               <div className="bg-gray-50 rounded p-3">
                 <p className="font-medium text-gray-700 mb-2">Disneyland</p>
                 <AppLink 
-                  appStoreUrl="https://apps.apple.com/us/app/disneyland/id1022229754"
+                  appStoreUrl="https://apps.apple.com/dk/app/my-disney-experience/id547436543?l=da"
                   appName="Disneyland App"
-                />
-              </div>
-              <div className="bg-gray-50 rounded p-3">
-                <p className="font-medium text-gray-700 mb-2">Warner Bros. Studio Tour</p>
-                <AppLink 
-                  appStoreUrl="https://apps.apple.com/us/app/warner-bros-studio-tour/id721176693"
-                  appName="Warner Bros. App"
                 />
               </div>
             </div>
