@@ -4,6 +4,7 @@ import "./globals.css";
 import ServiceWorkerRegistration from "./components/ServiceWorkerRegistration";
 import LoadingScreen from "./components/LoadingScreen";
 import PreloadLinks from "./components/PreloadLinks";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const fredoka = Fredoka({
   variable: "--font-fredoka",
@@ -62,7 +63,9 @@ export default function RootLayout({
         <ServiceWorkerRegistration />
         <LoadingScreen />
         <PreloadLinks />
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </body>
     </html>
   );
