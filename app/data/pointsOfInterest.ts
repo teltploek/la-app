@@ -17,9 +17,7 @@ export const pointsOfInterest: PointOfInterest[] = [
     id: 'poi-1',
     name: 'The Hollywood Franklin Hotel near Universal Studios',
     category: 'hotel',
-    coordinates: { lat: 34.1053561, lng: -118.3239266 },
-    website: 'https://www.thehollywoodfranklin.com',
-    instagram: 'thehollywoodfranklin'
+    coordinates: { lat: 34.1053561, lng: -118.3239266 }
   },
   {
     id: 'poi-2',
@@ -61,15 +59,14 @@ export const pointsOfInterest: PointOfInterest[] = [
     name: 'Warner Bros.-studierne',
     category: 'seværdighed',
     coordinates: { lat: 34.1485458, lng: -118.3359672 },
-    website: 'https://www.wbstudiotour.com',
-    instagram: 'wbtourhollywood'
+    website: 'https://www.wbstudiotour.com'
   },
   {
     id: 'poi-6',
     name: 'Santa Monica Pier',
     category: 'seværdighed',
     coordinates: { lat: 34.0082821, lng: -118.4987585 },
-    website: 'https://santamonicapier.org',
+    website: 'https://www.santamonicapier.org',
     instagram: 'santamonicapier'
   },
   {
@@ -93,16 +90,14 @@ export const pointsOfInterest: PointOfInterest[] = [
     name: 'Beverly Hills',
     category: 'seværdighed',
     coordinates: { lat: 34.0730715, lng: -118.4016265 },
-    website: 'https://www.beverlyhills.org',
-    instagram: 'beverlyhillsofficial'
+    website: 'https://www.beverlyhills.org'
   },
   {
     id: 'poi-10',
     name: 'Angels Flight Railway',
     category: 'seværdighed',
     coordinates: { lat: 34.05161739999999, lng: -118.2506142 },
-    website: 'https://angelsflight.org',
-    instagram: 'angelsflightrailway'
+    website: 'https://angelsflight.org'
   },
   
   // Shopping
@@ -136,16 +131,14 @@ export const pointsOfInterest: PointOfInterest[] = [
     id: 'poi-14',
     name: "Dad's Donuts & Bakery",
     category: 'donut',
-    coordinates: { lat: 34.1848861, lng: -118.338886 },
-    instagram: 'dadsdonutsbakery'
+    coordinates: { lat: 34.1848861, lng: -118.338886 }
   },
   {
     id: 'poi-15',
     name: 'The Donut Man',
     category: 'donut',
     coordinates: { lat: 34.0505267, lng: -118.2487006 },
-    website: 'https://thedonutmanca.com',
-    instagram: 'thedonutmanca'
+    website: 'https://thedonutmanca.com'
   },
   
   // Kaffe
@@ -155,7 +148,7 @@ export const pointsOfInterest: PointOfInterest[] = [
     category: 'cafe',
     coordinates: { lat: 34.0839483, lng: -118.3754843 },
     website: 'https://kreationjuice.com',
-    instagram: 'kreationorganicjuicery'
+    instagram: 'kreationjuice'
   },
   {
     id: 'poi-17',
