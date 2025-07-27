@@ -125,7 +125,7 @@ export default function PointsOfInterestPage() {
                   )}
                   {poi.instagram && (
                     <a
-                      href={`https://instagram.com/${poi.instagram}`}
+                      href={`https://www.instagram.com/${poi.instagram}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center px-2 text-emerald-600 hover:bg-emerald-50 transition-colors"

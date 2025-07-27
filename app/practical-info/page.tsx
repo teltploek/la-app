@@ -59,25 +59,25 @@ export default function PracticalInfoPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-gray-50 rounded p-3">
                 <p className="font-medium text-gray-700">Far</p>
-                <a href="tel:+4530124205" className="text-emerald-700 hover:underline text-lg font-semibold">
+                <a href="tel:+4530124205" className="text-emerald-700 hover:underline text-sm font-semibold">
                   +45 30 12 42 05
                 </a>
               </div>
               <div className="bg-gray-50 rounded p-3">
                 <p className="font-medium text-gray-700">Mor</p>
-                <a href="tel:+4526130238" className="text-emerald-700 hover:underline text-lg font-semibold">
+                <a href="tel:+4526130238" className="text-emerald-700 hover:underline text-sm font-semibold">
                   +45 26 13 02 38
                 </a>
               </div>
               <div className="bg-gray-50 rounded p-3">
                 <p className="font-medium text-gray-700">Josefine</p>
-                <a href="tel:+4593850238" className="text-emerald-700 hover:underline text-lg font-semibold">
+                <a href="tel:+4593850238" className="text-emerald-700 hover:underline text-sm font-semibold">
                   +45 93 85 02 38
                 </a>
               </div>
               <div className="bg-gray-50 rounded p-3">
                 <p className="font-medium text-gray-700">Frederik</p>
-                <a href="tel:+4593800238" className="text-emerald-700 hover:underline text-lg font-semibold">
+                <a href="tel:+4593800238" className="text-emerald-700 hover:underline text-sm font-semibold">
                   +45 93 80 02 38
                 </a>
               </div>
@@ -123,7 +123,6 @@ export default function PracticalInfoPage() {
                 <p className="font-medium text-gray-700 mb-2">Universal Studios Hollywood</p>
                 <AppLink 
                   appStoreUrl="https://apps.apple.com/us/app/universal-studios-hollywood/id495352410"
-                  appScheme="universalstudioshollywood://"
                   appName="Universal App"
                 />
               </div>
@@ -131,7 +130,6 @@ export default function PracticalInfoPage() {
                 <p className="font-medium text-gray-700 mb-2">Disneyland</p>
                 <AppLink 
                   appStoreUrl="https://apps.apple.com/us/app/disneyland/id1022229754"
-                  appScheme="shopdisney://"
                   appName="Disneyland App"
                 />
               </div>
@@ -139,7 +137,6 @@ export default function PracticalInfoPage() {
                 <p className="font-medium text-gray-700 mb-2">Warner Bros. Studio Tour</p>
                 <AppLink 
                   appStoreUrl="https://apps.apple.com/us/app/warner-bros-studio-tour/id721176693"
-                  appScheme="wbstudiotour://"
                   appName="Warner Bros. App"
                 />
               </div>
