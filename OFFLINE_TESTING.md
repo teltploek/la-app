@@ -11,6 +11,8 @@ npm run start
 ### 2. Open the App
 - Navigate to http://localhost:3000
 - Open Chrome DevTools (F12)
+- Check the Console for "Service Worker: Pre-caching complete"
+- **All pages are now automatically cached during installation!**
 
 ### 3. Install the App (PWA)
 - On desktop: Look for the install icon in the address bar
@@ -19,15 +21,10 @@ npm run start
   - Tap the Share button
   - Select "Add to Home Screen"
 
-### 4. Preload All Pages
-- With the app open, navigate to each page at least once
-- OR run this in the browser console:
-```javascript
-// This will fetch all pages to ensure they're cached
-const script = document.createElement('script');
-script.src = '/preload.js';
-document.head.appendChild(script);
-```
+### 4. Wait for Pre-caching to Complete
+- The service worker automatically pre-caches all pages and assets
+- Check DevTools > Application > Cache Storage to see cached items
+- No need to visit each page first!
 
 ### 5. Test Offline Mode
 - In DevTools: Go to Network tab → Set to "Offline"

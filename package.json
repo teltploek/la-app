@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && npm run generate-sw",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate-sw": "node scripts/generate-sw-assets.js"
   },
   "dependencies": {
     "next": "15.4.4",
@@ -21,6 +22,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.4.4",
+    "glob": "^11.0.3",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

@@ -1,40 +1,104 @@
-// Auto-generated service worker
-const CACHE_VERSION = 'la-trip-v4-1753643803399';
-const STATIC_CACHE = `static-${CACHE_VERSION}`;
-const DYNAMIC_CACHE = `dynamic-${CACHE_VERSION}`;
+const fs = require('fs');
+const path = require('path');
+const glob = require('glob');
+
+// Function to get all files in the .next/static directory
+function getStaticAssets() {
+  const buildDir = path.join(process.cwd(), '.next');
+  const staticDir = path.join(buildDir, 'static');
+  
+  if (!fs.existsSync(staticDir)) {
+    console.error('Build directory not found. Run "npm run build" first.');
+    process.exit(1);
+  }
+
+  // Get all static assets
+  const staticAssets = glob.sync('**/*', {
+    cwd: staticDir,
+    nodir: true,
+  }).map(file => `/_next/static/${file}`);
+
+  return staticAssets;
+}
+
+// Function to get all prerendered HTML pages
+function getPrerenderedPages() {
+  const serverDir = path.join(process.cwd(), '.next/server/app');
+  const pages = [];
+
+  if (!fs.existsSync(serverDir)) {
+    return pages;
+  }
+
+  // Find all HTML files
+  const htmlFiles = glob.sync('**/*.html', {
+    cwd: serverDir,
+    nodir: true,
+  });
+
+  // Convert file paths to routes
+  htmlFiles.forEach(file => {
+    let route = file.replace(/\.html$/, '');
+    route = route.replace(/\/index$/, '');
+    route = route.replace(/^index$/, '');
+    if (route && !route.startsWith('/')) {
+      route = '/' + route;
+    }
+    if (!route) {
+      route = '/';
+    }
+    pages.push(route);
+  });
+
+  return pages;
+}
+
+// Generate the service worker with all assets
+function generateServiceWorker() {
+  const staticAssets = getStaticAssets();
+  const pages = getPrerenderedPages();
+  
+  // All routes that need to be cached
+  const routes = [
+    '/',
+    '/day/1',
+    '/day/2',
+    '/day/3',
+    '/day/4',
+    '/day/5',
+    '/day/6',
+    '/day/7',
+    '/practical-info',
+    '/points-of-interest',
+    '/offline',
+    // Activity pages
+    '/activity/day1-1',
+    '/activity/day2-1',
+    '/activity/day2-2',
+    '/activity/day2-3',
+    '/activity/day2-4',
+    '/activity/day2-5',
+    '/activity/day3-1',
+    '/activity/day3-2',
+    '/activity/day4-1',
+    '/activity/day4-2',
+    '/activity/day4-3',
+    '/activity/day4-4',
+    '/activity/day4-5',
+    '/activity/day5-1',
+    '/activity/day5-2',
+    '/activity/day6-1',
+    '/activity/day6-2',
+    '/activity/day7-1',
+  ];
+
+  const swContent = `// Auto-generated service worker
+const CACHE_VERSION = 'la-trip-v4-${Date.now()}';
+const STATIC_CACHE = \`static-\${CACHE_VERSION}\`;
+const DYNAMIC_CACHE = \`dynamic-\${CACHE_VERSION}\`;
 
 // All routes that need to be cached
-const ROUTES_TO_CACHE = [
-  "/",
-  "/day/1",
-  "/day/2",
-  "/day/3",
-  "/day/4",
-  "/day/5",
-  "/day/6",
-  "/day/7",
-  "/practical-info",
-  "/points-of-interest",
-  "/offline",
-  "/activity/day1-1",
-  "/activity/day2-1",
-  "/activity/day2-2",
-  "/activity/day2-3",
-  "/activity/day2-4",
-  "/activity/day2-5",
-  "/activity/day3-1",
-  "/activity/day3-2",
-  "/activity/day4-1",
-  "/activity/day4-2",
-  "/activity/day4-3",
-  "/activity/day4-4",
-  "/activity/day4-5",
-  "/activity/day5-1",
-  "/activity/day5-2",
-  "/activity/day6-1",
-  "/activity/day6-2",
-  "/activity/day7-1"
-];
+const ROUTES_TO_CACHE = ${JSON.stringify(routes, null, 2)};
 
 // Static assets that should be cached
 const STATIC_ASSETS = [
@@ -46,40 +110,7 @@ const STATIC_ASSETS = [
 ];
 
 // Next.js build assets
-const BUILD_ASSETS = [
-  "/_next/static/media/ef8217b34764eb74-s.p.woff2",
-  "/_next/static/media/e4af272ccee01ff0-s.p.woff2",
-  "/_next/static/media/df0a9ae256c0569c-s.woff2",
-  "/_next/static/media/bb36247b0b027bd1-s.woff2",
-  "/_next/static/media/97e0cb1ae144a2a9-s.woff2",
-  "/_next/static/media/8e9860b6e62d6359-s.woff2",
-  "/_next/static/media/581909926a08bbc8-s.woff2",
-  "/_next/static/media/55c55f0601d81cf3-s.woff2",
-  "/_next/static/media/3e5302f118d6bde7-s.woff2",
-  "/_next/static/media/26a46d62cd723877-s.woff2",
-  "/_next/static/css/49265d21c26a0664.css",
-  "/_next/static/chunks/webpack-392562dacac07b1c.js",
-  "/_next/static/chunks/polyfills-42372ed130431b0a.js",
-  "/_next/static/chunks/main-app-3fc3b07e10722fe5.js",
-  "/_next/static/chunks/main-34987b2720640f92.js",
-  "/_next/static/chunks/framework-7c95b8e5103c9e90.js",
-  "/_next/static/chunks/964-d6e2a37b7965f281.js",
-  "/_next/static/chunks/874-437a265a67d6cfee.js",
-  "/_next/static/chunks/4bd1b696-cf72ae8a39fa05aa.js",
-  "/_next/static/chunks/pages/_error-03529f2c21436739.js",
-  "/_next/static/chunks/pages/_app-0a0020ddd67f79cf.js",
-  "/_next/static/chunks/app/page-59c75bff96e02f71.js",
-  "/_next/static/chunks/app/layout-a697cd51ed9b1feb.js",
-  "/_next/static/chunks/app/practical-info/page-3903b8000aabd9c4.js",
-  "/_next/static/chunks/app/points-of-interest/page-d8be10a3ac1fd2b1.js",
-  "/_next/static/chunks/app/offline/page-28ad47ced1a28c6e.js",
-  "/_next/static/chunks/app/day/[dayNumber]/page-59c75bff96e02f71.js",
-  "/_next/static/chunks/app/api/icon/route-c8e4ba43997ddd22.js",
-  "/_next/static/chunks/app/activity/[activityId]/page-6f545f837c47f9af.js",
-  "/_next/static/chunks/app/_not-found/page-30d03175f453ce22.js",
-  "/_next/static/HBaW3CfqTXsGfSVYoMsIQ/_ssgManifest.js",
-  "/_next/static/HBaW3CfqTXsGfSVYoMsIQ/_buildManifest.js"
-];
+const BUILD_ASSETS = ${JSON.stringify(staticAssets, null, 2)};
 
 // All assets to pre-cache
 const ALL_ASSETS = [...ROUTES_TO_CACHE, ...STATIC_ASSETS, ...BUILD_ASSETS];
@@ -234,3 +265,15 @@ self.addEventListener('message', (event) => {
     event.ports[0].postMessage({ version: CACHE_VERSION });
   }
 });
+`;
+
+  // Write the service worker file
+  const swPath = path.join(process.cwd(), 'public', 'sw.js');
+  fs.writeFileSync(swPath, swContent);
+  
+  console.log('✅ Service worker generated successfully!');
+  console.log(`📦 Pre-caching ${routes.length} routes and ${staticAssets.length} static assets`);
+}
+
+// Run the script
+generateServiceWorker();
