@@ -117,7 +117,7 @@ export const tripData: TripData = {
               time: "16:20",
               timezone: "America/Los_Angeles"
             },
-            duration: "11h 5m",
+            duration: "11t 5m",
             status: "Confirmed"
           }
         }
@@ -392,7 +392,7 @@ export const tripData: TripData = {
               date: "2025-08-04",
               timezone: "Europe/Copenhagen"
             },
-            duration: "10h 40m",
+            duration: "10t 40m",
             status: "Confirmed"
           }
         }

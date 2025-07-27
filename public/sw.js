@@ -1,4 +1,4 @@
-const CACHE_NAME = 'la-trip-v1';
+const CACHE_NAME = 'la-trip-v2';
 const urlsToCache = [
   '/',
   '/day/1',
@@ -9,6 +9,7 @@ const urlsToCache = [
   '/day/6',
   '/day/7',
   '/practical-info',
+  '/points-of-interest',
   '/_next/static/css/app/layout.css',
   '/_next/static/chunks/webpack.js',
   '/_next/static/chunks/main-app.js',
@@ -26,6 +27,11 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Only handle HTTP and HTTPS requests
+  if (!event.request.url.startsWith('http')) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
@@ -34,9 +40,16 @@ self.addEventListener('fetch', (event) => {
         }
         return fetch(event.request).then(
           (response) => {
+            // Check if we received a valid response
             if(!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
+            
+            // Don't cache non-HTTP(S) schemes
+            if (!event.request.url.startsWith('http')) {
+              return response;
+            }
+
             const responseToCache = response.clone();
             caches.open(CACHE_NAME)
               .then((cache) => {

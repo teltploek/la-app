@@ -9,7 +9,7 @@ export default function Home() {
       <header className="bg-emerald-600 text-white p-4 sticky top-0 z-10 shadow-lg">
         <h1 className="text-2xl font-bold text-center font-display">{tripData.tripName}</h1>
         <p className="text-center text-sm mt-1 opacity-90">
-          {new Date(tripData.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(tripData.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+          {new Date(tripData.startDate).toLocaleDateString('da-DK', { month: 'short', day: 'numeric' })} - {new Date(tripData.endDate).toLocaleDateString('da-DK', { month: 'short', day: 'numeric', year: 'numeric' })}
         </p>
       </header>
       
@@ -33,7 +33,7 @@ export default function Home() {
                       Dag {day.dayNumber}: {day.dayName}
                     </h2>
                     <p className="text-sm text-gray-600 mt-1">
-                      {new Date(day.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+                      {new Date(day.date).toLocaleDateString('da-DK', { month: 'long', day: 'numeric' })}
                     </p>
                     {isToday && (
                       <span className="inline-block mt-2 px-2 py-1 bg-emerald-600 text-white text-xs font-medium rounded">
@@ -63,12 +63,20 @@ export default function Home() {
           })}
         </div>
         
-        <Link
-          href="/practical-info"
-          className="fixed bottom-4 left-4 right-4 max-w-md mx-auto block bg-emerald-700 text-white text-center py-4 px-6 rounded-lg shadow-lg hover:bg-emerald-800 transition-colors"
-        >
-          <span className="text-lg font-medium font-display">📋 Praktisk Information</span>
-        </Link>
+        <div className="fixed bottom-4 left-4 right-4 max-w-md mx-auto flex gap-2">
+          <Link
+            href="/practical-info"
+            className="flex-1 bg-emerald-700 text-white text-center py-4 px-4 rounded-lg shadow-lg hover:bg-emerald-800 transition-colors"
+          >
+            <span className="text-base font-medium font-display">📋 Praktisk Info</span>
+          </Link>
+          <Link
+            href="/points-of-interest"
+            className="flex-1 bg-emerald-700 text-white text-center py-4 px-4 rounded-lg shadow-lg hover:bg-emerald-800 transition-colors"
+          >
+            <span className="text-base font-medium font-display">📍 Steder</span>
+          </Link>
+        </div>
       </main>
     </div>
   );

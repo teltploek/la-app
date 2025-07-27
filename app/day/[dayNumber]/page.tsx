@@ -26,7 +26,7 @@ export default async function DayPage({ params }: { params: Promise<{ dayNumber:
           <div className="text-center flex-1">
             <h1 className="text-xl font-bold font-display">Dag {day.dayNumber}: {day.dayName}</h1>
             <p className="text-sm opacity-90">
-              {new Date(day.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+              {new Date(day.date).toLocaleDateString('da-DK', { month: 'long', day: 'numeric' })}
             </p>
           </div>
           <div className="w-6 h-6" />
