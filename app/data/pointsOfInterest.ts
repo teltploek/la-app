@@ -42,7 +42,7 @@ export const pointsOfInterest: PointOfInterest[] = [
     category: 'forlystelsespark',
     coordinates: { lat: 34.1370713, lng: -118.3533061 },
     website: 'https://www.universalstudioshollywood.com',
-    instagram: 'unistudioshollywood'
+    instagram: 'unistudios'
   },
   {
     id: 'poi-4',
