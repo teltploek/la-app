@@ -1,7 +1,14 @@
-const CACHE_VERSION = 'la-trip-v5';
+const CACHE_VERSION = 'la-trip-v6';
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `dynamic-${CACHE_VERSION}`;
 const NEXT_DATA_CACHE = `next-data-${CACHE_VERSION}`;
+
+// Force update any existing service worker
+self.addEventListener('message', (event) => {
+  if (event.data === 'skipWaiting') {
+    self.skipWaiting();
+  }
+});
 
 // All routes that need to be cached
 const ROUTES_TO_CACHE = [
@@ -143,10 +150,37 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip Next.js hot reloading
+  // Skip Next.js hot reloading and development paths
   if (url.pathname.includes('_next/webpack-hmr') || 
       url.pathname.includes('__nextjs') ||
-      url.pathname.includes('_next/image')) {
+      url.pathname.includes('_next/image') ||
+      url.pathname.includes('_vercel')) {
+    return;
+  }
+  
+  // For root path, ensure we serve the cached version in standalone mode
+  if (url.pathname === '/' || url.pathname === '') {
+    event.respondWith(
+      caches.match('/')
+        .then((response) => {
+          if (response) {
+            return response;
+          }
+          return fetch(request);
+        })
+        .catch(() => {
+          // If both cache and network fail, show offline page
+          return caches.match('/offline').then((offlineResponse) => {
+            if (offlineResponse) {
+              return offlineResponse;
+            }
+            return new Response(
+              '<html><body><h1>Offline</h1><p>App ikke tilgængelig offline.</p></body></html>',
+              { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+            );
+          });
+        })
+    );
     return;
   }
 

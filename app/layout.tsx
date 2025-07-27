@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fredoka, Inter } from "next/font/google";
 import "./globals.css";
 import ServiceWorkerRegistration from "./components/ServiceWorkerRegistration";
+import LoadingScreen from "./components/LoadingScreen";
 
 const fredoka = Fredoka({
   variable: "--font-fredoka",
@@ -58,6 +59,7 @@ export default function RootLayout({
         className={`${fredoka.variable} ${inter.variable} antialiased`}
       >
         <ServiceWorkerRegistration />
+        <LoadingScreen />
         {children}
       </body>
     </html>

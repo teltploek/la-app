@@ -7,44 +7,62 @@ export default function ServiceWorkerRegistration() {
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
 
   useEffect(() => {
+    // Check if we're in standalone mode
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                        ('standalone' in window.navigator && (window.navigator as { standalone?: boolean }).standalone) || 
+                        document.referrer.includes('android-app://');
+
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      // Only register in production
-      if (process.env.NODE_ENV === 'production') {
-        // Register service worker
-        navigator.serviceWorker.register('/sw.js').then(
-        (registration) => {
-          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+      // Register service worker immediately, even in development for testing
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+          .then((reg) => {
+            console.log('ServiceWorker registration successful with scope: ', reg.scope);
 
-          // Check for updates periodically (every hour)
-          setInterval(() => {
-            registration.update();
-          }, 1000 * 60 * 60);
-
-          // Listen for new service worker waiting
-          registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing;
-            if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  // New service worker is waiting to activate
-                  setWaitingWorker(newWorker);
-                  setShowUpdatePrompt(true);
-                }
+            // If this is the first install, wait for it to activate
+            if (!navigator.serviceWorker.controller) {
+              console.log('Service Worker: First install, waiting for activation...');
+              navigator.serviceWorker.addEventListener('controllerchange', () => {
+                window.location.reload();
               });
             }
+
+            // Check for updates every 30 seconds in standalone mode
+            if (isStandalone) {
+              setInterval(() => {
+                reg.update();
+              }, 30000);
+            } else {
+              // Check for updates every hour in browser mode
+              setInterval(() => {
+                reg.update();
+              }, 1000 * 60 * 60);
+            }
+
+            // Listen for new service worker waiting
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    // New service worker is waiting to activate
+                    setWaitingWorker(newWorker);
+                    setShowUpdatePrompt(true);
+                  }
+                });
+              }
+            });
+          })
+          .catch((err) => {
+            console.error('ServiceWorker registration failed: ', err);
           });
-        },
-        (err) => {
-          console.error('ServiceWorker registration failed: ', err);
-        }
-      );
 
         // Handle controller change
         navigator.serviceWorker.addEventListener('controllerchange', () => {
           // Reload the page when the service worker controller changes
           window.location.reload();
         });
-      }
+      });
     }
   }, []);
 
