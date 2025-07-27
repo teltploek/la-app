@@ -2,7 +2,7 @@ export interface PointOfInterest {
   id: string;
   name: string;
   description?: string;
-  category: 'hotel' | 'lufthavn' | 'forlystelsespark' | 'seværdighed' | 'shopping' | 'restaurant' | 'cafe' | 'donut' | 'is' | 'transport';
+  category: 'hotel' | 'lufthavn' | 'forlystelsespark' | 'seværdighed' | 'shopping' | 'restaurant' | 'cafe' | 'donut' | 'is' | 'transport' | 'dagligvarer' | 'kiosk';
   coordinates: {
     lat: number;
     lng: number;
@@ -138,6 +138,30 @@ export const pointsOfInterest: PointOfInterest[] = [
     coordinates: { lat: 34.0505267, lng: -118.2487006 },
     website: 'https://thedonutmanca.com'
   },
+  {
+    id: 'poi-27',
+    name: 'Dunkin\' - Hollywood Blvd',
+    category: 'donut',
+    coordinates: { lat: 34.1017, lng: -118.3389 },
+    website: 'https://www.dunkindonuts.com',
+    instagram: 'dunkin'
+  },
+  {
+    id: 'poi-28',
+    name: 'Dunkin\' - Sunset Blvd',
+    category: 'donut',
+    coordinates: { lat: 34.0984, lng: -118.3298 },
+    website: 'https://www.dunkindonuts.com',
+    instagram: 'dunkin'
+  },
+  {
+    id: 'poi-29',
+    name: 'Dunkin\' - Vermont Ave',
+    category: 'donut',
+    coordinates: { lat: 34.0895, lng: -118.2917 },
+    website: 'https://www.dunkindonuts.com',
+    instagram: 'dunkin'
+  },
   
   // Kaffe
   {
@@ -220,6 +244,73 @@ export const pointsOfInterest: PointOfInterest[] = [
     coordinates: { lat: 34.0841673, lng: -118.3855776 },
     website: 'https://saltandstraw.com',
     instagram: 'saltandstraw'
+  },
+  
+  // Dagligvarer (Grocery Stores)
+  {
+    id: 'poi-30',
+    name: 'Trader Joe\'s - Hollywood',
+    category: 'dagligvarer',
+    coordinates: { lat: 34.1019, lng: -118.3241 },
+    website: 'https://www.traderjoes.com',
+    instagram: 'traderjoes'
+  },
+  {
+    id: 'poi-31',
+    name: 'Ralph\'s - Hollywood',
+    category: 'dagligvarer',
+    coordinates: { lat: 34.1018, lng: -118.3425 },
+    website: 'https://www.ralphs.com'
+  },
+  {
+    id: 'poi-32',
+    name: 'Whole Foods Market - Hollywood',
+    category: 'dagligvarer',
+    coordinates: { lat: 34.0927, lng: -118.3281 },
+    website: 'https://www.wholefoodsmarket.com',
+    instagram: 'wholefoods'
+  },
+  {
+    id: 'poi-36',
+    name: 'Target - Hollywood',
+    category: 'dagligvarer',
+    coordinates: { lat: 34.1016, lng: -118.3290 },
+    website: 'https://www.target.com',
+    instagram: 'target'
+  },
+  {
+    id: 'poi-37',
+    name: 'Target - West Hollywood',
+    category: 'dagligvarer',
+    coordinates: { lat: 34.0838, lng: -118.3714 },
+    website: 'https://www.target.com',
+    instagram: 'target'
+  },
+  
+  // Kiosker (Convenience Stores)
+  {
+    id: 'poi-33',
+    name: '7-Eleven - Highland Ave',
+    category: 'kiosk',
+    coordinates: { lat: 34.1045, lng: -118.3384 },
+    website: 'https://www.7-eleven.com',
+    instagram: '7eleven'
+  },
+  {
+    id: 'poi-34',
+    name: '7-Eleven - Hollywood Blvd',
+    category: 'kiosk',
+    coordinates: { lat: 34.1017, lng: -118.3313 },
+    website: 'https://www.7-eleven.com',
+    instagram: '7eleven'
+  },
+  {
+    id: 'poi-35',
+    name: 'CVS Pharmacy - Hollywood',
+    category: 'kiosk',
+    coordinates: { lat: 34.1018, lng: -118.3264 },
+    website: 'https://www.cvs.com',
+    instagram: 'cvspharmacy'
   }
 ];
 
@@ -233,7 +324,9 @@ export const categoryLabels: Record<PointOfInterest['category'], string> = {
   cafe: 'Kaffe',
   donut: 'Donut & Bageri',
   is: 'Is',
-  transport: 'Transport'
+  transport: 'Transport',
+  dagligvarer: 'Dagligvarer',
+  kiosk: 'Kiosk'
 };
 
 export const categoryIcons: Record<PointOfInterest['category'], string> = {
@@ -246,5 +339,7 @@ export const categoryIcons: Record<PointOfInterest['category'], string> = {
   cafe: '☕',
   donut: '🍩',
   is: '🍦',
-  transport: '🚇'
+  transport: '🚇',
+  dagligvarer: '🛒',
+  kiosk: '🏪'
 };

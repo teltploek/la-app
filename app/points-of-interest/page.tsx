@@ -4,17 +4,39 @@ import Link from "next/link";
 import { useState, useMemo } from "react";
 import { pointsOfInterest, categoryLabels, categoryIcons, type PointOfInterest } from "@/app/data/pointsOfInterest";
 
+// Hollywood Franklin Hotel coordinates
+const HOTEL_COORDS = { lat: 34.1053561, lng: -118.3239266 };
+
+// Calculate distance between two points using Haversine formula
+function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
 export default function PointsOfInterestPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<PointOfInterest['category'] | 'all'>('all');
 
+  const poisWithDistance = useMemo(() => {
+    return pointsOfInterest.map(poi => ({
+      ...poi,
+      distance: calculateDistance(HOTEL_COORDS.lat, HOTEL_COORDS.lng, poi.coordinates.lat, poi.coordinates.lng)
+    })).sort((a, b) => a.distance - b.distance);
+  }, []);
+
   const filteredPOIs = useMemo(() => {
-    return pointsOfInterest.filter(poi => {
+    return poisWithDistance.filter(poi => {
       const matchesSearch = poi.name.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || poi.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, poisWithDistance]);
 
   const categories = useMemo(() => {
     const uniqueCategories = Array.from(new Set(pointsOfInterest.map(poi => poi.category)));
@@ -100,9 +122,22 @@ export default function PointsOfInterestPage() {
                   <h3 className="font-semibold text-gray-900 font-display">
                     {poi.name}
                   </h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {categoryLabels[poi.category]}
-                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-sm text-gray-600">
+                      {categoryLabels[poi.category]}
+                    </p>
+                    {poi.id !== 'poi-1' && (
+                      <>
+                        <span className="text-gray-400">•</span>
+                        <p className="text-sm text-gray-500">
+                          {poi.distance < 1 
+                            ? `${Math.round(poi.distance * 1000)} m fra hotellet`
+                            : `${poi.distance.toFixed(1)} km fra hotellet`
+                          }
+                        </p>
+                      </>
+                    )}
+                  </div>
                   {poi.description && (
                     <p className="text-sm text-gray-500 mt-2">
                       {poi.description}
