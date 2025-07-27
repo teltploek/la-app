@@ -16,15 +16,26 @@ export default function ServiceWorkerRegistration() {
                         document.referrer.includes('android-app://');
 
     if ('serviceWorker' in navigator) {
-      // Register service worker
+      // Wait for window load to ensure all assets are available
       const registerSW = () => {
         navigator.serviceWorker.register('/sw.js', { scope: '/' })
           .then((reg) => {
             console.log('ServiceWorker registration successful with scope: ', reg.scope);
 
-            // Log status but don't force reload on first install
+            // Handle first install
             if (!navigator.serviceWorker.controller) {
               console.log('Service Worker: First install, waiting for activation...');
+              
+              // For iOS PWA, wait for the service worker to be ready
+              navigator.serviceWorker.ready.then(() => {
+                console.log('Service Worker: Ready and active');
+                
+                // If this is a standalone PWA, reload once to ensure SW controls the page
+                if (isStandalone && !sessionStorage.getItem('sw-reloaded')) {
+                  sessionStorage.setItem('sw-reloaded', 'true');
+                  window.location.reload();
+                }
+              });
             }
 
             // Check for updates every 30 seconds in standalone mode
@@ -56,17 +67,22 @@ export default function ServiceWorkerRegistration() {
           .catch((err) => {
             console.error('ServiceWorker registration failed: ', err);
           });
-
       };
 
       // Handle controller change
       navigator.serviceWorker.addEventListener('controllerchange', () => {
+        // Clear the reload flag when controller changes
+        sessionStorage.removeItem('sw-reloaded');
         // Reload the page when the service worker controller changes
         window.location.reload();
       });
 
-      // Register immediately
-      registerSW();
+      // Register when window is loaded or immediately if already loaded
+      if (document.readyState === 'complete') {
+        registerSW();
+      } else {
+        window.addEventListener('load', registerSW);
+      }
     }
   }, []);
 

@@ -5,6 +5,8 @@ import ServiceWorkerRegistration from "./components/ServiceWorkerRegistration";
 import LoadingScreen from "./components/LoadingScreen";
 import PreloadLinks from "./components/PreloadLinks";
 import ErrorBoundary from "./components/ErrorBoundary";
+import PWAInstallPrompt from "./components/PWAInstallPrompt";
+import IOSMetaTags from "./components/IOSMetaTags";
 
 const fredoka = Fredoka({
   variable: "--font-fredoka",
@@ -57,12 +59,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="da">
+      <head>
+        <IOSMetaTags />
+      </head>
       <body
         className={`${fredoka.variable} ${inter.variable} antialiased`}
       >
         <ServiceWorkerRegistration />
         <LoadingScreen />
         <PreloadLinks />
+        <PWAInstallPrompt />
         <ErrorBoundary>
           {children}
         </ErrorBoundary>

@@ -1,7 +1,7 @@
-// Service Worker for LA Trip App
-const CACHE_NAME = 'la-trip-v9';
+// Service Worker for LA Trip App - iOS PWA Optimized
+const CACHE_NAME = 'la-trip-v10';
 
-// Core routes to cache during install
+// Core assets to cache immediately
 const CORE_CACHE = [
   '/',
   '/offline',
@@ -9,9 +9,8 @@ const CORE_CACHE = [
   '/favicon.ico'
 ];
 
-// All app routes - both HTML and data
+// All app routes
 const APP_ROUTES = [
-  // HTML pages
   '/day/1',
   '/day/2',
   '/day/3',
@@ -41,22 +40,61 @@ const APP_ROUTES = [
   '/activity/day7-1'
 ];
 
-// Icon sizes
+// Icon sizes to cache
 const ICON_SIZES = [16, 32, 96, 152, 167, 180, 192, 512];
 
-// Install event - cache core assets
+// Install event - cache everything needed for offline
 self.addEventListener('install', event => {
   console.log('[ServiceWorker] Install');
   
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
+      .then(async cache => {
         console.log('[ServiceWorker] Caching core assets');
-        return cache.addAll(CORE_CACHE);
+        
+        // Cache core assets first
+        await cache.addAll(CORE_CACHE);
+        
+        // Cache all routes - critical for offline
+        console.log('[ServiceWorker] Caching all routes');
+        const routePromises = APP_ROUTES.map(async (url) => {
+          try {
+            const response = await fetch(url, {
+              headers: {
+                'Accept': 'text/html,application/xhtml+xml'
+              }
+            });
+            if (response.ok) {
+              await cache.put(url, response);
+              console.log('[ServiceWorker] Cached route:', url);
+            }
+          } catch (err) {
+            console.warn('[ServiceWorker] Failed to cache route:', url, err);
+          }
+        });
+        
+        // Cache icons
+        const iconPromises = ICON_SIZES.map(async (size) => {
+          try {
+            const url = `/api/icon?size=${size}`;
+            const response = await fetch(url);
+            if (response.ok) {
+              await cache.put(url, response);
+              console.log('[ServiceWorker] Cached icon:', size);
+            }
+          } catch (err) {
+            console.warn('[ServiceWorker] Failed to cache icon:', size, err);
+          }
+        });
+        
+        // Wait for all caching to complete before finishing install
+        await Promise.all([...routePromises, ...iconPromises]);
+        
+        console.log('[ServiceWorker] All assets cached, install complete');
       })
       .then(() => {
-        console.log('[ServiceWorker] Skip waiting');
-        return self.skipWaiting();
+        // Don't skip waiting during install - let caching complete first
+        console.log('[ServiceWorker] Install complete');
       })
       .catch(err => {
         console.error('[ServiceWorker] Install failed:', err);
@@ -64,7 +102,7 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activate event - claim clients and cache all routes
+// Activate event
 self.addEventListener('activate', event => {
   console.log('[ServiceWorker] Activate');
   
@@ -82,47 +120,13 @@ self.addEventListener('activate', event => {
         );
       }),
       
-      // Claim all clients
-      self.clients.claim(),
-      
-      // Pre-cache all routes and data after activation
-      caches.open(CACHE_NAME).then(cache => {
-        console.log('[ServiceWorker] Pre-caching all routes');
-        
-        // Cache HTML pages
-        APP_ROUTES.forEach(url => {
-          fetch(url, {
-            headers: {
-              'Accept': 'text/html'
-            }
-          })
-            .then(response => {
-              if (response.ok) {
-                cache.put(url, response.clone());
-                console.log('[ServiceWorker] Cached HTML:', url);
-              }
-            })
-            .catch(err => console.warn('[ServiceWorker] Failed to cache:', url, err));
-        });
-        
-        // Cache icons
-        ICON_SIZES.forEach(size => {
-          const url = `/api/icon?size=${size}`;
-          fetch(url)
-            .then(response => {
-              if (response.ok) {
-                cache.put(url, response);
-                console.log('[ServiceWorker] Cached icon:', size);
-              }
-            })
-            .catch(err => console.warn('[ServiceWorker] Failed to cache icon:', size, err));
-        });
-      })
+      // Claim all clients immediately
+      self.clients.claim()
     ])
   );
 });
 
-// Fetch event handler
+// Fetch event handler - iOS optimized
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
@@ -132,86 +136,97 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Skip webpack/development requests
+  // Skip development/webpack requests
   if (url.pathname.includes('webpack') || 
       url.pathname.includes('_next/static/development') ||
-      url.pathname.includes('__nextjs')) {
+      url.pathname.includes('__nextjs') ||
+      url.pathname.includes('hot-update')) {
     return;
   }
 
-  // Clone the request for potential modifications
-  let modifiedRequest = request;
-
-  // For app routes, ensure we request HTML
-  if (APP_ROUTES.includes(url.pathname)) {
-    modifiedRequest = new Request(request, {
-      headers: new Headers({
-        ...request.headers,
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-      })
-    });
-  }
-
-  // Handle all requests
+  // For iOS PWA, use cache-first strategy for reliability
   event.respondWith(
-    caches.match(request, { ignoreVary: true })
+    caches.match(request, { ignoreSearch: true, ignoreVary: true })
       .then(cachedResponse => {
-        // If we have a cache hit, return it
         if (cachedResponse) {
-          console.log('[ServiceWorker] Cache hit:', request.url);
+          console.log('[ServiceWorker] Serving from cache:', request.url);
           
-          // For HTML pages, also update cache in background
+          // Update cache in background for HTML pages
           if (request.mode === 'navigate' || 
               request.headers.get('accept')?.includes('text/html') ||
               APP_ROUTES.includes(url.pathname)) {
-            fetch(modifiedRequest).then(response => {
-              if (response.ok) {
-                caches.open(CACHE_NAME).then(cache => {
-                  cache.put(request, response);
-                });
+            
+            // iOS fix: Create proper request with headers
+            const fetchRequest = new Request(request, {
+              cache: 'no-cache',
+              headers: {
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
               }
-            }).catch(() => {
-              // Ignore errors in background update
             });
+            
+            fetch(fetchRequest)
+              .then(response => {
+                if (response && response.ok) {
+                  caches.open(CACHE_NAME).then(cache => {
+                    cache.put(request, response);
+                  });
+                }
+              })
+              .catch(() => {
+                // Ignore background update errors
+              });
           }
           
           return cachedResponse;
         }
 
-        // No cache hit, fetch from network
-        console.log('[ServiceWorker] Cache miss, fetching:', request.url);
-        return fetch(modifiedRequest)
+        // No cache, try network
+        console.log('[ServiceWorker] Fetching from network:', request.url);
+        
+        // Create proper request for iOS
+        const fetchRequest = request.mode === 'navigate' || APP_ROUTES.includes(url.pathname)
+          ? new Request(request, {
+              headers: {
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+              }
+            })
+          : request;
+
+        return fetch(fetchRequest)
           .then(response => {
-            // Don't cache non-ok responses
+            // Check if valid response
             if (!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
 
-            // Clone response before caching
+            // Clone and cache the response
             const responseToCache = response.clone();
-
-            // Cache everything useful
+            
             caches.open(CACHE_NAME).then(cache => {
-              // Cache all successful responses
               cache.put(request, responseToCache);
-              console.log('[ServiceWorker] Cached new:', request.url);
+              console.log('[ServiceWorker] Cached from network:', request.url);
             });
 
             return response;
           })
           .catch(error => {
-            console.error('[ServiceWorker] Fetch failed:', request.url, error);
+            console.error('[ServiceWorker] Network request failed:', request.url, error);
             
-            // For navigation requests, try offline page
+            // For navigation, return offline page
             if (request.mode === 'navigate') {
               return caches.match('/offline').then(response => {
                 if (response) {
                   return response;
                 }
-                // Last resort
+                // Fallback HTML
                 return new Response(
-                  '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Offline</title></head><body><h1>Offline</h1><p>Denne side er ikke tilgængelig offline.</p></body></html>',
-                  { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+                  '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Offline</title></head><body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 20px; text-align: center;"><h1>Offline</h1><p>Denne side er ikke tilgængelig offline.</p><p>Prøv at genindlæse siden når du har forbindelse igen.</p></body></html>',
+                  { 
+                    headers: { 
+                      'Content-Type': 'text/html; charset=utf-8',
+                      'Cache-Control': 'no-store'
+                    } 
+                  }
                 );
               });
             }
@@ -223,21 +238,31 @@ self.addEventListener('fetch', event => {
             });
           });
       })
+      .catch(error => {
+        console.error('[ServiceWorker] Cache match error:', error);
+        // Return network error response
+        return new Response('Service Worker Error', {
+          status: 500,
+          statusText: 'Internal Error'
+        });
+      })
   );
 });
 
-// Handle messages
+// Handle skip waiting message
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[ServiceWorker] Skip waiting requested');
     self.skipWaiting();
   }
 });
 
-// Catch any unhandled errors
+// iOS specific: Handle errors gracefully
 self.addEventListener('error', event => {
   console.error('[ServiceWorker] Error:', event.error);
 });
 
 self.addEventListener('unhandledrejection', event => {
   console.error('[ServiceWorker] Unhandled rejection:', event.reason);
+  event.preventDefault();
 });
