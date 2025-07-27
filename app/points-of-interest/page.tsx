@@ -122,20 +122,17 @@ export default function PointsOfInterestPage() {
                   <h3 className="font-semibold text-gray-900 font-display">
                     {poi.name}
                   </h3>
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="flex flex-col gap-1 mt-1">
                     <p className="text-sm text-gray-600">
                       {categoryLabels[poi.category]}
                     </p>
                     {poi.id !== 'poi-1' && (
-                      <>
-                        <span className="text-gray-400">•</span>
-                        <p className="text-sm text-gray-500">
-                          {poi.distance < 1 
-                            ? `${Math.round(poi.distance * 1000)} m fra hotellet`
-                            : `${poi.distance.toFixed(1)} km fra hotellet`
-                          }
-                        </p>
-                      </>
+                      <p className="text-xs text-gray-500">
+                        {poi.distance < 1 
+                          ? `${Math.round(poi.distance * 1000)} m`
+                          : `${poi.distance.toFixed(1)} km`
+                        }
+                      </p>
                     )}
                   </div>
                   {poi.description && (
