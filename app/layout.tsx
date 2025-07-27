@@ -18,14 +18,33 @@ export const metadata: Metadata = {
   title: "LA Familietur 2025",
   description: "Rejseplan og information for LA ferie",
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "LA Tur",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  openGraph: {
+    title: "LA Familietur 2025",
+    description: "Rejseplan og information for LA ferie",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "LA Familietur 2025",
+    description: "Rejseplan og information for LA ferie",
+  },
 };
 
 export const viewport = {
   themeColor: "#059669",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -34,7 +53,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="da">
       <body
         className={`${fredoka.variable} ${inter.variable} antialiased`}
       >
