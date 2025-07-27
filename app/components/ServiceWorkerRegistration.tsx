@@ -7,9 +7,11 @@ export default function ServiceWorkerRegistration() {
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
 
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      // Register service worker
-      navigator.serviceWorker.register('/sw.js').then(
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      // Only register in production
+      if (process.env.NODE_ENV === 'production') {
+        // Register service worker
+        navigator.serviceWorker.register('/sw.js').then(
         (registration) => {
           console.log('ServiceWorker registration successful with scope: ', registration.scope);
 
@@ -37,11 +39,12 @@ export default function ServiceWorkerRegistration() {
         }
       );
 
-      // Handle controller change
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        // Reload the page when the service worker controller changes
-        window.location.reload();
-      });
+        // Handle controller change
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          // Reload the page when the service worker controller changes
+          window.location.reload();
+        });
+      }
     }
   }, []);
 

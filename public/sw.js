@@ -1,121 +1,105 @@
-// Auto-generated service worker
-const CACHE_VERSION = 'la-trip-v4-1753643803399';
+const CACHE_VERSION = 'la-trip-v5';
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `dynamic-${CACHE_VERSION}`;
+const NEXT_DATA_CACHE = `next-data-${CACHE_VERSION}`;
 
 // All routes that need to be cached
 const ROUTES_TO_CACHE = [
-  "/",
-  "/day/1",
-  "/day/2",
-  "/day/3",
-  "/day/4",
-  "/day/5",
-  "/day/6",
-  "/day/7",
-  "/practical-info",
-  "/points-of-interest",
-  "/offline",
-  "/activity/day1-1",
-  "/activity/day2-1",
-  "/activity/day2-2",
-  "/activity/day2-3",
-  "/activity/day2-4",
-  "/activity/day2-5",
-  "/activity/day3-1",
-  "/activity/day3-2",
-  "/activity/day4-1",
-  "/activity/day4-2",
-  "/activity/day4-3",
-  "/activity/day4-4",
-  "/activity/day4-5",
-  "/activity/day5-1",
-  "/activity/day5-2",
-  "/activity/day6-1",
-  "/activity/day6-2",
-  "/activity/day7-1"
+  '/',
+  '/day/1',
+  '/day/2',
+  '/day/3',
+  '/day/4',
+  '/day/5',
+  '/day/6',
+  '/day/7',
+  '/practical-info',
+  '/points-of-interest',
+  '/offline',
+  // Activity pages
+  '/activity/day1-1',
+  '/activity/day2-1',
+  '/activity/day2-2',
+  '/activity/day2-3',
+  '/activity/day2-4',
+  '/activity/day2-5',
+  '/activity/day3-1',
+  '/activity/day3-2',
+  '/activity/day4-1',
+  '/activity/day4-2',
+  '/activity/day4-3',
+  '/activity/day4-4',
+  '/activity/day4-5',
+  '/activity/day5-1',
+  '/activity/day5-2',
+  '/activity/day6-1',
+  '/activity/day6-2',
+  '/activity/day7-1',
 ];
 
 // Static assets that should be cached
 const STATIC_ASSETS = [
   '/manifest.json',
   '/favicon.ico',
+];
+
+// API routes for icons
+const API_ROUTES = [
   '/api/icon?size=96',
   '/api/icon?size=192',
   '/api/icon?size=512',
 ];
 
-// Next.js build assets
-const BUILD_ASSETS = [
-  "/_next/static/media/ef8217b34764eb74-s.p.woff2",
-  "/_next/static/media/e4af272ccee01ff0-s.p.woff2",
-  "/_next/static/media/df0a9ae256c0569c-s.woff2",
-  "/_next/static/media/bb36247b0b027bd1-s.woff2",
-  "/_next/static/media/97e0cb1ae144a2a9-s.woff2",
-  "/_next/static/media/8e9860b6e62d6359-s.woff2",
-  "/_next/static/media/581909926a08bbc8-s.woff2",
-  "/_next/static/media/55c55f0601d81cf3-s.woff2",
-  "/_next/static/media/3e5302f118d6bde7-s.woff2",
-  "/_next/static/media/26a46d62cd723877-s.woff2",
-  "/_next/static/css/49265d21c26a0664.css",
-  "/_next/static/chunks/webpack-392562dacac07b1c.js",
-  "/_next/static/chunks/polyfills-42372ed130431b0a.js",
-  "/_next/static/chunks/main-app-3fc3b07e10722fe5.js",
-  "/_next/static/chunks/main-34987b2720640f92.js",
-  "/_next/static/chunks/framework-7c95b8e5103c9e90.js",
-  "/_next/static/chunks/964-d6e2a37b7965f281.js",
-  "/_next/static/chunks/874-437a265a67d6cfee.js",
-  "/_next/static/chunks/4bd1b696-cf72ae8a39fa05aa.js",
-  "/_next/static/chunks/pages/_error-03529f2c21436739.js",
-  "/_next/static/chunks/pages/_app-0a0020ddd67f79cf.js",
-  "/_next/static/chunks/app/page-59c75bff96e02f71.js",
-  "/_next/static/chunks/app/layout-a697cd51ed9b1feb.js",
-  "/_next/static/chunks/app/practical-info/page-3903b8000aabd9c4.js",
-  "/_next/static/chunks/app/points-of-interest/page-d8be10a3ac1fd2b1.js",
-  "/_next/static/chunks/app/offline/page-28ad47ced1a28c6e.js",
-  "/_next/static/chunks/app/day/[dayNumber]/page-59c75bff96e02f71.js",
-  "/_next/static/chunks/app/api/icon/route-c8e4ba43997ddd22.js",
-  "/_next/static/chunks/app/activity/[activityId]/page-6f545f837c47f9af.js",
-  "/_next/static/chunks/app/_not-found/page-30d03175f453ce22.js",
-  "/_next/static/HBaW3CfqTXsGfSVYoMsIQ/_ssgManifest.js",
-  "/_next/static/HBaW3CfqTXsGfSVYoMsIQ/_buildManifest.js"
-];
-
-// All assets to pre-cache
-const ALL_ASSETS = [...ROUTES_TO_CACHE, ...STATIC_ASSETS, ...BUILD_ASSETS];
-
-// Install event - pre-cache all assets
+// Install event - pre-cache essential assets
 self.addEventListener('install', (event) => {
   console.log('Service Worker: Installing...');
   
   event.waitUntil(
-    caches.open(STATIC_CACHE)
-      .then((cache) => {
-        console.log('Service Worker: Pre-caching all assets');
-        // Cache in smaller batches to avoid overwhelming the browser
-        const batchSize = 10;
+    Promise.all([
+      // Cache HTML pages
+      caches.open(STATIC_CACHE).then((cache) => {
+        console.log('Service Worker: Pre-caching pages');
+        // Cache routes in smaller batches
         const promises = [];
+        const batchSize = 5;
         
-        for (let i = 0; i < ALL_ASSETS.length; i += batchSize) {
-          const batch = ALL_ASSETS.slice(i, i + batchSize);
+        for (let i = 0; i < ROUTES_TO_CACHE.length; i += batchSize) {
+          const batch = ROUTES_TO_CACHE.slice(i, i + batchSize);
           promises.push(
             cache.addAll(batch).catch(err => {
-              console.error('Failed to cache batch:', batch, err);
-              // Continue with other batches even if one fails
+              console.warn('Failed to cache batch:', batch, err);
+              // Continue with other batches
               return Promise.resolve();
             })
           );
         }
         
+        // Also cache static assets
+        promises.push(
+          cache.addAll(STATIC_ASSETS).catch(err => {
+            console.warn('Failed to cache static assets:', err);
+            return Promise.resolve();
+          })
+        );
+        
+        // Cache API routes
+        promises.push(
+          cache.addAll(API_ROUTES).catch(err => {
+            console.warn('Failed to cache API routes:', err);
+            return Promise.resolve();
+          })
+        );
+        
         return Promise.all(promises);
-      })
-      .then(() => {
-        console.log('Service Worker: Pre-caching complete');
-        return self.skipWaiting();
-      })
-      .catch((error) => {
-        console.error('Service Worker: Pre-caching failed:', error);
-      })
+      }),
+    ])
+    .then(() => {
+      console.log('Service Worker: Pre-caching complete');
+      return self.skipWaiting();
+    })
+    .catch((error) => {
+      console.error('Service Worker: Installation failed:', error);
+    })
   );
 });
 
@@ -128,7 +112,9 @@ self.addEventListener('activate', (event) => {
       .then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
-            if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
+            if (cacheName !== STATIC_CACHE && 
+                cacheName !== DYNAMIC_CACHE && 
+                cacheName !== NEXT_DATA_CACHE) {
               console.log('Service Worker: Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
@@ -152,48 +138,72 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip requests to external domains
+  // Skip cross-origin requests
   if (url.origin !== location.origin) {
     return;
   }
 
-  // Skip webpack hot reload in development
-  if (url.pathname.includes('webpack') && url.pathname.includes('hot')) {
+  // Skip Next.js hot reloading
+  if (url.pathname.includes('_next/webpack-hmr') || 
+      url.pathname.includes('__nextjs') ||
+      url.pathname.includes('_next/image')) {
     return;
   }
 
   event.respondWith(
-    caches.match(request)
+    caches.match(request, { ignoreSearch: true })
       .then((cachedResponse) => {
         if (cachedResponse) {
+          // Return cached response if found
           return cachedResponse;
         }
 
+        // Clone the request
         const fetchRequest = request.clone();
 
         return fetch(fetchRequest)
           .then((response) => {
+            // Check if valid response
             if (!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
 
+            // Clone the response
             const responseToCache = response.clone();
+
+            // Determine cache strategy
             const isStaticAsset = 
-              request.url.includes('/_next/static/') ||
-              request.url.includes('/api/icon') ||
-              request.url.endsWith('.woff2') ||
-              request.url.endsWith('.woff') ||
-              request.url.endsWith('.css') ||
-              request.url.endsWith('.js') ||
-              request.url.endsWith('.json') ||
-              request.url.endsWith('.svg') ||
-              request.url.endsWith('.ico');
+              url.pathname.includes('/_next/static/') ||
+              url.pathname.includes('/api/icon') ||
+              url.pathname.endsWith('.woff2') ||
+              url.pathname.endsWith('.woff') ||
+              url.pathname.endsWith('.css') ||
+              url.pathname.endsWith('.js') ||
+              url.pathname.endsWith('.json') ||
+              url.pathname.endsWith('.svg') ||
+              url.pathname.endsWith('.ico') ||
+              url.pathname.endsWith('.png') ||
+              url.pathname.endsWith('.jpg') ||
+              url.pathname.endsWith('.jpeg');
 
-            const cacheName = isStaticAsset ? STATIC_CACHE : DYNAMIC_CACHE;
+            const isDataRequest = 
+              url.pathname.includes('/_next/data/') ||
+              url.pathname.endsWith('.json');
 
+            let cacheName = DYNAMIC_CACHE;
+            if (isStaticAsset) {
+              cacheName = STATIC_CACHE;
+            } else if (isDataRequest) {
+              cacheName = NEXT_DATA_CACHE;
+            }
+
+            // Cache the response
             caches.open(cacheName)
               .then((cache) => {
                 cache.put(request, responseToCache);
+              })
+              .catch((err) => {
+                console.warn('Failed to cache response:', err);
               });
 
             return response;
@@ -201,30 +211,36 @@ self.addEventListener('fetch', (event) => {
           .catch((error) => {
             console.error('Service Worker: Fetch failed:', error);
             
+            // For navigation requests, return offline page
             if (request.mode === 'navigate') {
-              return caches.match('/offline').then((response) => {
-                if (response) {
-                  return response;
-                }
-                return caches.match('/').then((homeResponse) => {
-                  if (homeResponse) {
-                    return homeResponse;
+              return caches.match('/offline')
+                .then((offlineResponse) => {
+                  if (offlineResponse) {
+                    return offlineResponse;
                   }
-                  return new Response(
-                    '<html><body><h1>Offline</h1><p>Siden er ikke tilgængelig offline.</p></body></html>',
-                    { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-                  );
+                  // Fallback to home page
+                  return caches.match('/')
+                    .then((homeResponse) => {
+                      if (homeResponse) {
+                        return homeResponse;
+                      }
+                      // Last resort
+                      return new Response(
+                        '<html><body><h1>Offline</h1><p>Please check your connection.</p></body></html>',
+                        { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+                      );
+                    });
                 });
-              });
             }
             
+            // For other requests, just reject
             throw error;
           });
       })
   );
 });
 
-// Listen for messages from the app
+// Listen for messages
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();

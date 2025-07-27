@@ -3,7 +3,9 @@ import { ImageResponse } from 'next/og';
 export const runtime = 'edge';
 
 export async function GET(request: Request) {
-  const size = request.url.includes('512') ? 512 : 192;
+  const { searchParams } = new URL(request.url);
+  const sizeParam = searchParams.get('size');
+  const size = sizeParam ? parseInt(sizeParam, 10) : 192;
   
   return new ImageResponse(
     (
