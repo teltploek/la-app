@@ -3,6 +3,7 @@ import { Fredoka, Inter } from "next/font/google";
 import "./globals.css";
 import ServiceWorkerRegistration from "./components/ServiceWorkerRegistration";
 import LoadingScreen from "./components/LoadingScreen";
+import PreloadLinks from "./components/PreloadLinks";
 
 const fredoka = Fredoka({
   variable: "--font-fredoka",
@@ -60,6 +61,7 @@ export default function RootLayout({
       >
         <ServiceWorkerRegistration />
         <LoadingScreen />
+        <PreloadLinks />
         {children}
       </body>
     </html>

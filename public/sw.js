@@ -1,5 +1,5 @@
 // Service Worker for LA Trip App
-const CACHE_NAME = 'la-trip-v8';
+const CACHE_NAME = 'la-trip-v9';
 
 // Core routes to cache during install
 const CORE_CACHE = [
@@ -9,8 +9,9 @@ const CORE_CACHE = [
   '/favicon.ico'
 ];
 
-// All app routes
+// All app routes - both HTML and data
 const APP_ROUTES = [
+  // HTML pages
   '/day/1',
   '/day/2',
   '/day/3',
@@ -84,17 +85,21 @@ self.addEventListener('activate', event => {
       // Claim all clients
       self.clients.claim(),
       
-      // Pre-cache all routes after activation
+      // Pre-cache all routes and data after activation
       caches.open(CACHE_NAME).then(cache => {
         console.log('[ServiceWorker] Pre-caching all routes');
         
-        // Cache app routes
+        // Cache HTML pages
         APP_ROUTES.forEach(url => {
-          fetch(url)
+          fetch(url, {
+            headers: {
+              'Accept': 'text/html'
+            }
+          })
             .then(response => {
               if (response.ok) {
-                cache.put(url, response);
-                console.log('[ServiceWorker] Cached:', url);
+                cache.put(url, response.clone());
+                console.log('[ServiceWorker] Cached HTML:', url);
               }
             })
             .catch(err => console.warn('[ServiceWorker] Failed to cache:', url, err));
@@ -117,7 +122,7 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch event - Network first, fallback to cache
+// Fetch event handler
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
@@ -134,98 +139,105 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // For navigation requests (HTML pages)
-  if (request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')) {
-    event.respondWith(
-      // Try network first
-      fetch(request)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Network response not ok');
-          }
-          // Cache successful responses
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(request, responseToCache);
-          });
-          return response;
-        })
-        .catch(() => {
-          // Network failed, try cache
-          return caches.match(request)
-            .then(cachedResponse => {
-              if (cachedResponse) {
-                console.log('[ServiceWorker] Serving from cache:', request.url);
-                return cachedResponse;
-              }
-              // Not in cache, return offline page
-              return caches.match('/offline')
-                .then(offlineResponse => {
-                  if (offlineResponse) {
-                    return offlineResponse;
-                  }
-                  // Last resort - return a basic offline message
-                  return new Response(
-                    '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Offline</title></head><body><h1>Offline</h1><p>Please check your connection.</p></body></html>',
-                    { headers: { 'Content-Type': 'text/html' } }
-                  );
-                });
-            });
-        })
-    );
-    return;
+  // Clone the request for potential modifications
+  let modifiedRequest = request;
+
+  // For app routes, ensure we request HTML
+  if (APP_ROUTES.includes(url.pathname)) {
+    modifiedRequest = new Request(request, {
+      headers: new Headers({
+        ...request.headers,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+      })
+    });
   }
 
-  // For all other requests (assets), use cache-first
+  // Handle all requests
   event.respondWith(
-    caches.match(request)
+    caches.match(request, { ignoreVary: true })
       .then(cachedResponse => {
+        // If we have a cache hit, return it
         if (cachedResponse) {
-          // Return from cache and update in background
-          fetch(request).then(response => {
-            if (response.ok) {
-              caches.open(CACHE_NAME).then(cache => {
-                cache.put(request, response);
-              });
-            }
-          }).catch(() => {
-            // Ignore network errors for background update
-          });
+          console.log('[ServiceWorker] Cache hit:', request.url);
+          
+          // For HTML pages, also update cache in background
+          if (request.mode === 'navigate' || 
+              request.headers.get('accept')?.includes('text/html') ||
+              APP_ROUTES.includes(url.pathname)) {
+            fetch(modifiedRequest).then(response => {
+              if (response.ok) {
+                caches.open(CACHE_NAME).then(cache => {
+                  cache.put(request, response);
+                });
+              }
+            }).catch(() => {
+              // Ignore errors in background update
+            });
+          }
+          
           return cachedResponse;
         }
 
-        // Not in cache, fetch from network
-        return fetch(request).then(response => {
-          if (!response.ok) {
-            throw new Error('Network response not ok');
-          }
-          
-          // Cache successful responses
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(request, responseToCache);
-          });
-          
-          return response;
-        });
-      })
-      .catch(() => {
-        // Both cache and network failed
-        console.error('[ServiceWorker] Request failed:', request.url);
-        return new Response('Resource not available offline', {
-          status: 503,
-          statusText: 'Service Unavailable',
-          headers: new Headers({
-            'Content-Type': 'text/plain'
+        // No cache hit, fetch from network
+        console.log('[ServiceWorker] Cache miss, fetching:', request.url);
+        return fetch(modifiedRequest)
+          .then(response => {
+            // Don't cache non-ok responses
+            if (!response || response.status !== 200 || response.type !== 'basic') {
+              return response;
+            }
+
+            // Clone response before caching
+            const responseToCache = response.clone();
+
+            // Cache everything useful
+            caches.open(CACHE_NAME).then(cache => {
+              // Cache all successful responses
+              cache.put(request, responseToCache);
+              console.log('[ServiceWorker] Cached new:', request.url);
+            });
+
+            return response;
           })
-        });
+          .catch(error => {
+            console.error('[ServiceWorker] Fetch failed:', request.url, error);
+            
+            // For navigation requests, try offline page
+            if (request.mode === 'navigate') {
+              return caches.match('/offline').then(response => {
+                if (response) {
+                  return response;
+                }
+                // Last resort
+                return new Response(
+                  '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Offline</title></head><body><h1>Offline</h1><p>Denne side er ikke tilgængelig offline.</p></body></html>',
+                  { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+                );
+              });
+            }
+            
+            // For other requests, return error
+            return new Response('Network error', {
+              status: 503,
+              statusText: 'Service Unavailable'
+            });
+          });
       })
   );
 });
 
-// Handle skip waiting message
+// Handle messages
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
+});
+
+// Catch any unhandled errors
+self.addEventListener('error', event => {
+  console.error('[ServiceWorker] Error:', event.error);
+});
+
+self.addEventListener('unhandledrejection', event => {
+  console.error('[ServiceWorker] Unhandled rejection:', event.reason);
 });
