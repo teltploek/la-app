@@ -25,7 +25,7 @@ export const pointsOfInterest: PointOfInterest[] = [
     category: 'lufthavn',
     coordinates: { lat: 33.942153, lng: -118.4036052 },
     website: 'https://www.flylax.com',
-    instagram: 'fly_lax'
+    instagram: 'flylaxairport'
   },
   {
     id: 'poi-23',
@@ -42,7 +42,7 @@ export const pointsOfInterest: PointOfInterest[] = [
     category: 'forlystelsespark',
     coordinates: { lat: 34.1370713, lng: -118.3533061 },
     website: 'https://www.universalstudioshollywood.com',
-    instagram: 'unistudios'
+    instagram: 'unistudioshollywood'
   },
   {
     id: 'poi-4',
@@ -74,8 +74,7 @@ export const pointsOfInterest: PointOfInterest[] = [
     name: 'Hollywood Walk of Fame',
     category: 'seværdighed',
     coordinates: { lat: 34.1016059, lng: -118.3295694 },
-    website: 'https://walkoffame.com',
-    instagram: 'hwdwalkoffame'
+    website: 'https://walkoffame.com'
   },
   {
     id: 'poi-8',
@@ -106,8 +105,7 @@ export const pointsOfInterest: PointOfInterest[] = [
     name: 'Rodeo Drive',
     category: 'shopping',
     coordinates: { lat: 34.0703368, lng: -118.4041526 },
-    website: 'https://www.rodeodrive-bh.com',
-    instagram: 'rodeodrive'
+    website: 'https://www.rodeodrive-bh.com'
   },
   {
     id: 'poi-12',
@@ -198,15 +196,14 @@ export const pointsOfInterest: PointOfInterest[] = [
     category: 'restaurant',
     coordinates: { lat: 34.1017382, lng: -118.3385285 },
     website: 'https://www.hardrockcafe.com/location/hollywood/',
-    instagram: 'hardrockhollywood'
+    instagram: 'hardrockholly'
   },
   {
     id: 'poi-25',
     name: "Langer's Delicatessen",
     category: 'restaurant',
     coordinates: { lat: 34.0600653, lng: -118.2763476 },
-    website: 'https://www.langersdeli.com',
-    instagram: 'langersdeli'
+    website: 'https://www.langersdeli.com'
   },
   {
     id: 'poi-26',
