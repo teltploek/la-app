@@ -8,11 +8,11 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: "Cache-Control",
-            value: "public, max-age=0, must-revalidate",
+            value: "no-cache, no-store, must-revalidate",
           },
           {
-            key: "Service-Worker-Allowed",
-            value: "/",
+            key: "Content-Type",
+            value: "application/javascript; charset=utf-8",
           },
         ],
       },
@@ -21,7 +21,20 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: "Cache-Control",
-            value: "public, max-age=0, must-revalidate",
+            value: "no-cache, no-store, must-revalidate",
+          },
+          {
+            key: "Content-Type",
+            value: "application/manifest+json",
+          },
+        ],
+      },
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
           },
         ],
       },

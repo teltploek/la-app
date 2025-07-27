@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Worker Test</title>
+    <style>
+        body {
+            font-family: -apple-system, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background: #059669;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Service Worker Diagnostics</h1>
+    
+    <div id="status"></div>
+    
+    <h2>Actions:</h2>
+    <button onclick="checkStatus()">Check Status</button>
+    <button onclick="clearCaches()">Clear All Caches</button>
+    <button onclick="unregisterSW()">Unregister SW</button>
+    <button onclick="registerSW()">Register SW</button>
+    
+    <h2>Cache Contents:</h2>
+    <div id="caches"></div>
+    
+    <h2>Logs:</h2>
+    <div id="logs"></div>
+
+    <script>
+        const log = (message, type = 'info') => {
+            const logs = document.getElementById('logs');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            logs.appendChild(div);
+            console.log(message);
+        };
+
+        const checkStatus = async () => {
+            const status = document.getElementById('status');
+            status.innerHTML = '';
+            
+            // Check if we're in standalone mode
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            status.innerHTML += `<div class="status info">Standalone mode: ${isStandalone}</div>`;
+            
+            // Check service worker support
+            if ('serviceWorker' in navigator) {
+                status.innerHTML += '<div class="status success">Service Worker API supported</div>';
+                
+                // Check registration
+                const registration = await navigator.serviceWorker.getRegistration();
+                if (registration) {
+                    status.innerHTML += `<div class="status success">SW registered: ${registration.scope}</div>`;
+                    status.innerHTML += `<div class="status info">SW state: ${registration.active ? 'active' : 'not active'}</div>`;
+                } else {
+                    status.innerHTML += '<div class="status error">No SW registered</div>';
+                }
+                
+                // Check controller
+                if (navigator.serviceWorker.controller) {
+                    status.innerHTML += '<div class="status success">Page controlled by SW</div>';
+                } else {
+                    status.innerHTML += '<div class="status error">Page NOT controlled by SW</div>';
+                }
+            } else {
+                status.innerHTML += '<div class="status error">Service Worker API not supported</div>';
+            }
+            
+            // List caches
+            await listCaches();
+        };
+
+        const listCaches = async () => {
+            const cacheDiv = document.getElementById('caches');
+            cacheDiv.innerHTML = '';
+            
+            const cacheNames = await caches.keys();
+            for (const name of cacheNames) {
+                const cache = await caches.open(name);
+                const keys = await cache.keys();
+                
+                cacheDiv.innerHTML += `<h3>${name} (${keys.length} items)</h3>`;
+                const ul = document.createElement('ul');
+                keys.forEach(request => {
+                    const li = document.createElement('li');
+                    li.textContent = new URL(request.url).pathname;
+                    ul.appendChild(li);
+                });
+                cacheDiv.appendChild(ul);
+            }
+        };
+
+        const clearCaches = async () => {
+            const names = await caches.keys();
+            await Promise.all(names.map(name => caches.delete(name)));
+            log('All caches cleared', 'success');
+            await checkStatus();
+        };
+
+        const unregisterSW = async () => {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(registrations.map(reg => reg.unregister()));
+            log('Service worker unregistered', 'success');
+            await checkStatus();
+        };
+
+        const registerSW = async () => {
+            try {
+                const reg = await navigator.serviceWorker.register('/sw.js');
+                log('Service worker registered', 'success');
+                
+                reg.addEventListener('updatefound', () => {
+                    log('Service worker update found', 'info');
+                });
+                
+                await checkStatus();
+            } catch (error) {
+                log(`Registration failed: ${error}`, 'error');
+            }
+        };
+
+        // Initial check
+        window.addEventListener('load', () => {
+            checkStatus();
+            
+            // Listen for SW messages
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.addEventListener('message', event => {
+                    log(`Message from SW: ${JSON.stringify(event.data)}`, 'info');
+                });
+                
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    log('Controller changed!', 'info');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
