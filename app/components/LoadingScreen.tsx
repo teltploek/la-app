@@ -4,26 +4,15 @@ import { useEffect, useState } from 'react';
 
 export default function LoadingScreen() {
   const [isLoading, setIsLoading] = useState(true);
-  const [loadingMessage, setLoadingMessage] = useState('Indlæser app...');
 
   useEffect(() => {
-    // Check if service worker is ready
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then(() => {
-        setLoadingMessage('App er klar!');
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 500);
-      });
-
-      // Also check if we already have a controller
-      if (navigator.serviceWorker.controller) {
-        setIsLoading(false);
-      }
-    } else {
-      // No service worker support, just hide loading
+    // Simple timeout-based loading
+    // Don't wait for service worker as it might cause issues
+    const timer = setTimeout(() => {
       setIsLoading(false);
-    }
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   if (!isLoading) return null;
@@ -35,7 +24,7 @@ export default function LoadingScreen() {
           <span className="text-white text-5xl font-bold">LA</span>
         </div>
         <h1 className="text-2xl font-bold text-gray-800 mb-2">LA Familietur 2025</h1>
-        <p className="text-gray-600">{loadingMessage}</p>
+        <p className="text-gray-600">Indlæser app...</p>
       </div>
     </div>
   );

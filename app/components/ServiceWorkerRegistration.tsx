@@ -7,24 +7,24 @@ export default function ServiceWorkerRegistration() {
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
 
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+
     // Check if we're in standalone mode
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
                         ('standalone' in window.navigator && (window.navigator as { standalone?: boolean }).standalone) || 
                         document.referrer.includes('android-app://');
 
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      // Register service worker immediately, even in development for testing
-      window.addEventListener('load', () => {
+    if ('serviceWorker' in navigator) {
+      // Register service worker
+      const registerSW = () => {
         navigator.serviceWorker.register('/sw.js', { scope: '/' })
           .then((reg) => {
             console.log('ServiceWorker registration successful with scope: ', reg.scope);
 
-            // If this is the first install, wait for it to activate
+            // Log status but don't force reload on first install
             if (!navigator.serviceWorker.controller) {
               console.log('Service Worker: First install, waiting for activation...');
-              navigator.serviceWorker.addEventListener('controllerchange', () => {
-                window.location.reload();
-              });
             }
 
             // Check for updates every 30 seconds in standalone mode
@@ -57,12 +57,16 @@ export default function ServiceWorkerRegistration() {
             console.error('ServiceWorker registration failed: ', err);
           });
 
-        // Handle controller change
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          // Reload the page when the service worker controller changes
-          window.location.reload();
-        });
+      };
+
+      // Handle controller change
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        // Reload the page when the service worker controller changes
+        window.location.reload();
       });
+
+      // Register immediately
+      registerSW();
     }
   }, []);
 
