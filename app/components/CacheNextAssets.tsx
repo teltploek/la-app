@@ -53,6 +53,16 @@ export default function CacheNextAssets() {
             link.rel = 'prefetch';
             link.href = route;
             document.head.appendChild(link);
+            
+            // Also trigger a fetch to ensure caching
+            fetch(route, {
+              mode: 'no-cors',
+              cache: 'force-cache'
+            }).then(() => {
+              console.log('[CacheNextAssets] Pre-fetched:', route);
+            }).catch(err => {
+              console.warn('[CacheNextAssets] Failed to pre-fetch:', route, err);
+            });
           });
 
           console.log('[CacheNextAssets] Pre-fetching all routes');

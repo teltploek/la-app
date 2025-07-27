@@ -1,5 +1,5 @@
-// Service Worker for LA Trip App - Complete Offline Support v13
-const CACHE_NAME = 'la-trip-v13';
+// Service Worker for LA Trip App - Complete Offline Support v14
+const CACHE_NAME = 'la-trip-v14';
 
 // Assets to cache during install
 const STATIC_ASSETS = [
@@ -18,7 +18,7 @@ const STATIC_ASSETS = [
   // Other pages
   '/practical-info',
   '/points-of-interest',
-  // Activity pages
+  // Activity pages - all of them
   '/activity/day1-1',
   '/activity/day2-1',
   '/activity/day2-2',
@@ -41,27 +41,27 @@ const STATIC_ASSETS = [
 
 // Install - cache everything
 self.addEventListener('install', event => {
-  console.log('[SW] Installing...');
+  console.log('[SW v14] Installing...');
   
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('[SW] Caching static assets');
+        console.log('[SW v14] Caching static assets');
         return cache.addAll(STATIC_ASSETS);
       })
       .then(() => {
-        console.log('[SW] Install complete');
+        console.log('[SW v14] Install complete - cached', STATIC_ASSETS.length, 'routes');
         return self.skipWaiting();
       })
       .catch(err => {
-        console.error('[SW] Install failed:', err);
+        console.error('[SW v14] Install failed:', err);
       })
   );
 });
 
 // Activate - clean old caches
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating...');
+  console.log('[SW v14] Activating...');
   
   event.waitUntil(
     caches.keys()
@@ -69,14 +69,14 @@ self.addEventListener('activate', event => {
         return Promise.all(
           cacheNames.map(cacheName => {
             if (cacheName !== CACHE_NAME) {
-              console.log('[SW] Deleting old cache:', cacheName);
+              console.log('[SW v14] Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
           })
         );
       })
       .then(() => {
-        console.log('[SW] Claiming clients');
+        console.log('[SW v14] Claiming clients');
         return self.clients.claim();
       })
   );
@@ -104,16 +104,16 @@ self.addEventListener('fetch', event => {
       return cache.match(request).then(cachedResponse => {
         // Return cached response if found
         if (cachedResponse) {
-          console.log('[SW] Cache hit:', request.url);
+          console.log('[SW v14] Cache hit:', request.url);
           return cachedResponse;
         }
 
         // For navigation to our app routes, try pathname match
-        if (request.mode === 'navigate') {
+        if (request.mode === 'navigate' || request.destination === 'document') {
           // Try exact pathname match
           return cache.match(url.pathname).then(pathResponse => {
             if (pathResponse) {
-              console.log('[SW] Pathname cache hit:', url.pathname);
+              console.log('[SW v14] Pathname cache hit:', url.pathname);
               return pathResponse;
             }
 
@@ -121,17 +121,26 @@ self.addEventListener('fetch', event => {
             const pathWithoutSlash = url.pathname.replace(/\/$/, '');
             return cache.match(pathWithoutSlash).then(noSlashResponse => {
               if (noSlashResponse) {
-                console.log('[SW] Pathname (no slash) cache hit:', pathWithoutSlash);
+                console.log('[SW v14] Pathname (no slash) cache hit:', pathWithoutSlash);
                 return noSlashResponse;
               }
 
-              // Fallback to network
-              return fetchAndCache(request, cache);
+              // Try with trailing slash
+              const pathWithSlash = url.pathname.endsWith('/') ? url.pathname : url.pathname + '/';
+              return cache.match(pathWithSlash).then(slashResponse => {
+                if (slashResponse) {
+                  console.log('[SW v14] Pathname (with slash) cache hit:', pathWithSlash);
+                  return slashResponse;
+                }
+
+                // Fallback to network
+                return fetchAndCache(request, cache);
+              });
             });
           });
         }
 
-        // For other requests, fetch and cache
+        // For other requests (JS, CSS, etc), fetch and cache
         return fetchAndCache(request, cache);
       });
     })
@@ -152,23 +161,29 @@ function fetchAndCache(request, cache) {
 
       // Cache everything that's successful
       cache.put(request, responseToCache).then(() => {
-        console.log('[SW] Cached:', request.url);
+        console.log('[SW v14] Cached:', request.url);
+        
+        // Also cache by pathname for navigation requests
+        if (request.mode === 'navigate' || request.destination === 'document') {
+          const url = new URL(request.url);
+          cache.put(url.pathname, responseToCache.clone());
+        }
       });
 
       return response;
     })
     .catch(error => {
-      console.error('[SW] Fetch failed:', request.url, error);
+      console.error('[SW v14] Fetch failed:', request.url, error);
       
       // For navigation requests, show offline page
-      if (request.mode === 'navigate') {
+      if (request.mode === 'navigate' || request.destination === 'document') {
         return cache.match('/offline').then(offlineResponse => {
           if (offlineResponse) {
             return offlineResponse;
           }
           // Last resort offline page
           return new Response(
-            '<html><body><h1>Offline</h1><p>Please check your connection.</p></body></html>',
+            '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Offline</title></head><body style="font-family: -apple-system, sans-serif; text-align: center; padding: 20px;"><h1>Offline</h1><p>Denne side er ikke tilgængelig offline.</p><p>Sørg for at besøge alle sider mens du er online.</p></body></html>',
             { headers: { 'Content-Type': 'text/html' } }
           );
         });
