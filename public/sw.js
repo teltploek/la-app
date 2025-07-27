@@ -1,5 +1,5 @@
 // Service Worker for LA Trip App - iOS PWA Optimized
-const CACHE_NAME = 'la-trip-v10';
+const CACHE_NAME = 'la-trip-v11';
 
 // Core assets to cache immediately
 const CORE_CACHE = [
@@ -144,45 +144,51 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // For iOS PWA, use cache-first strategy for reliability
+  // Handle requests
   event.respondWith(
-    caches.match(request, { ignoreSearch: true, ignoreVary: true })
-      .then(cachedResponse => {
-        if (cachedResponse) {
-          console.log('[ServiceWorker] Serving from cache:', request.url);
-          
-          // Update cache in background for HTML pages
-          if (request.mode === 'navigate' || 
-              request.headers.get('accept')?.includes('text/html') ||
-              APP_ROUTES.includes(url.pathname)) {
-            
-            // iOS fix: Create proper request with headers
-            const fetchRequest = new Request(request, {
-              cache: 'no-cache',
-              headers: {
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-              }
-            });
-            
-            fetch(fetchRequest)
-              .then(response => {
-                if (response && response.ok) {
-                  caches.open(CACHE_NAME).then(cache => {
-                    cache.put(request, response);
-                  });
-                }
-              })
-              .catch(() => {
-                // Ignore background update errors
-              });
-          }
-          
-          return cachedResponse;
-        }
+    (async () => {
+      // Try cache first
+      const cachedResponse = await caches.match(request, { 
+        ignoreSearch: true, 
+        ignoreVary: true 
+      });
 
-        // No cache, try network
-        console.log('[ServiceWorker] Fetching from network:', request.url);
+      if (cachedResponse) {
+        console.log('[ServiceWorker] Serving from cache:', request.url);
         
+        // Update cache in background for HTML pages
+        if (request.mode === 'navigate' || 
+            request.headers.get('accept')?.includes('text/html') ||
+            APP_ROUTES.includes(url.pathname)) {
+          
+          // iOS fix: Create proper request with headers
+          const fetchRequest = new Request(request, {
+            cache: 'no-cache',
+            headers: {
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+            }
+          });
+          
+          fetch(fetchRequest)
+            .then(response => {
+              if (response && response.ok) {
+                caches.open(CACHE_NAME).then(cache => {
+                  cache.put(request, response);
+                });
+              }
+            })
+            .catch(() => {
+              // Ignore background update errors
+            });
+        }
+        
+        return cachedResponse;
+      }
+
+      // No cache, try network
+      console.log('[ServiceWorker] Fetching from network:', request.url);
+      
+      try {
         // Create proper request for iOS
         const fetchRequest = request.mode === 'navigate' || APP_ROUTES.includes(url.pathname)
           ? new Request(request, {
@@ -192,60 +198,64 @@ self.addEventListener('fetch', event => {
             })
           : request;
 
-        return fetch(fetchRequest)
-          .then(response => {
-            // Check if valid response
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            // Clone and cache the response
-            const responseToCache = response.clone();
-            
-            caches.open(CACHE_NAME).then(cache => {
-              cache.put(request, responseToCache);
-              console.log('[ServiceWorker] Cached from network:', request.url);
-            });
-
+        const response = await fetch(fetchRequest);
+        
+        // Check if valid response
+        if (!response || response.status !== 200 || response.type !== 'basic') {
+          // For 404s on HTML pages, still cache them
+          if (response.status === 404 && request.mode === 'navigate') {
             return response;
-          })
-          .catch(error => {
-            console.error('[ServiceWorker] Network request failed:', request.url, error);
-            
-            // For navigation, return offline page
-            if (request.mode === 'navigate') {
-              return caches.match('/offline').then(response => {
-                if (response) {
-                  return response;
-                }
-                // Fallback HTML
-                return new Response(
-                  '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Offline</title></head><body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 20px; text-align: center;"><h1>Offline</h1><p>Denne side er ikke tilgængelig offline.</p><p>Prøv at genindlæse siden når du har forbindelse igen.</p></body></html>',
-                  { 
-                    headers: { 
-                      'Content-Type': 'text/html; charset=utf-8',
-                      'Cache-Control': 'no-store'
-                    } 
-                  }
-                );
-              });
-            }
-            
-            // For other requests, return error
-            return new Response('Network error', {
-              status: 503,
-              statusText: 'Service Unavailable'
-            });
+          }
+          return response;
+        }
+
+        // Clone and cache the response
+        const responseToCache = response.clone();
+        
+        // Cache all successful responses including Next.js assets
+        if (url.pathname.includes('_next/static') || 
+            url.pathname.includes('_next/') ||
+            url.pathname.endsWith('.js') ||
+            url.pathname.endsWith('.css') ||
+            url.pathname.endsWith('.json') ||
+            request.mode === 'navigate' ||
+            APP_ROUTES.includes(url.pathname)) {
+          
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(request, responseToCache);
+            console.log('[ServiceWorker] Cached from network:', request.url);
           });
-      })
-      .catch(error => {
-        console.error('[ServiceWorker] Cache match error:', error);
-        // Return network error response
-        return new Response('Service Worker Error', {
-          status: 500,
-          statusText: 'Internal Error'
+        }
+
+        return response;
+      } catch (error) {
+        console.error('[ServiceWorker] Network request failed:', request.url, error);
+        
+        // For navigation, return offline page
+        if (request.mode === 'navigate') {
+          const offlineResponse = await caches.match('/offline');
+          if (offlineResponse) {
+            return offlineResponse;
+          }
+          // Fallback HTML
+          return new Response(
+            '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Offline</title></head><body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 20px; text-align: center;"><h1>Offline</h1><p>Denne side er ikke tilgængelig offline.</p><p>Prøv at genindlæse siden når du har forbindelse igen.</p></body></html>',
+            { 
+              headers: { 
+                'Content-Type': 'text/html; charset=utf-8',
+                'Cache-Control': 'no-store'
+              } 
+            }
+          );
+        }
+        
+        // For other requests, return error
+        return new Response('Network error', {
+          status: 503,
+          statusText: 'Service Unavailable'
         });
-      })
+      }
+    })()
   );
 });
 
@@ -254,6 +264,15 @@ self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     console.log('[ServiceWorker] Skip waiting requested');
     self.skipWaiting();
+  }
+  
+  // Handle cache request
+  if (event.data && event.data.type === 'CACHE_ASSETS') {
+    event.waitUntil(
+      caches.open(CACHE_NAME).then(cache => {
+        return cache.addAll(event.data.assets);
+      })
+    );
   }
 });
 

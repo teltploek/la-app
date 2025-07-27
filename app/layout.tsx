@@ -7,6 +7,7 @@ import PreloadLinks from "./components/PreloadLinks";
 import ErrorBoundary from "./components/ErrorBoundary";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
 import IOSMetaTags from "./components/IOSMetaTags";
+import CacheNextAssets from "./components/CacheNextAssets";
 
 const fredoka = Fredoka({
   variable: "--font-fredoka",
@@ -68,6 +69,7 @@ export default function RootLayout({
         <ServiceWorkerRegistration />
         <LoadingScreen />
         <PreloadLinks />
+        <CacheNextAssets />
         <PWAInstallPrompt />
         <ErrorBoundary>
           {children}

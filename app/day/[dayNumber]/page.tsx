@@ -2,6 +2,13 @@ import Link from "next/link";
 import { tripData } from "@/app/data/tripData";
 import { notFound } from "next/navigation";
 
+// Generate static params for all days
+export async function generateStaticParams() {
+  return tripData.days.map((day) => ({
+    dayNumber: day.dayNumber.toString(),
+  }));
+}
+
 export default async function DayPage({ params }: { params: Promise<{ dayNumber: string }> }) {
   const { dayNumber: dayNumberStr } = await params;
   const dayNumber = parseInt(dayNumberStr);
