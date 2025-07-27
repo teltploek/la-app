@@ -2,7 +2,7 @@
   "name": "LA Familietur 2025",
   "short_name": "LA Tur",
   "description": "Rejseplan og information for LA ferie",
-  "start_url": "/?standalone=true",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",

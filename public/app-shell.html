@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>LA Familietur 2025</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f9fafb;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: #059669;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        .content {
+            flex: 1;
+            padding: 1rem;
+        }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #059669;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #c00;
+        }
+        .nav {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem;
+            flex-wrap: wrap;
+        }
+        .nav a {
+            flex: 1;
+            min-width: 100px;
+            padding: 0.5rem;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            text-align: center;
+            text-decoration: none;
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>LA Familietur 2025</h1>
+    </div>
+    
+    <div class="content">
+        <div class="loading" id="loading">
+            <p>Indlæser app...</p>
+            <div class="spinner"></div>
+        </div>
+        
+        <div id="error" style="display: none;">
+            <div class="error">
+                <p><strong>App kunne ikke indlæses</strong></p>
+                <p>Prøv at genindlæse siden eller brug navigationen nedenfor:</p>
+            </div>
+            
+            <nav class="nav">
+                <a href="/">Hjem</a>
+                <a href="/day/1">Dag 1</a>
+                <a href="/day/2">Dag 2</a>
+                <a href="/day/3">Dag 3</a>
+                <a href="/day/4">Dag 4</a>
+                <a href="/day/5">Dag 5</a>
+                <a href="/day/6">Dag 6</a>
+                <a href="/day/7">Dag 7</a>
+                <a href="/practical-info">Praktisk Info</a>
+                <a href="/points-of-interest">Seværdigheder</a>
+            </nav>
+        </div>
+    </div>
+
+    <script>
+        // Try to load the main app
+        setTimeout(() => {
+            if (window.location.pathname === '/app-shell.html') {
+                window.location.replace('/');
+            }
+        }, 100);
+        
+        // Show error after 5 seconds
+        setTimeout(() => {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+        }, 5000);
+    </script>
+</body>
+</html>
